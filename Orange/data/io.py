@@ -143,7 +143,11 @@ class CSVReader(FileFormat, DataTableMixin):
             with self.open(self.filename, mode='rt', newline='',
                            encoding=encoding, errors=errors) as file:
                 # Sniff the CSV dialect (delimiter, quotes, ...)
+                pos = 0
                 try:
+                    while (line:=file.readline())[0] == '#':
+                        pos = file.tell()
+                    file.seek(pos)
                     dialect = csv.Sniffer().sniff(
                         # Take first couple of *complete* lines as sample
                         ''.join(file.readline() for _ in range(10)),
@@ -157,7 +161,7 @@ class CSVReader(FileFormat, DataTableMixin):
                     delimiter = self.DELIMITERS[0]
                     quotechar = csv.excel.quotechar
 
-                file.seek(0)
+                file.seek(pos)
                 try:
                     reader = csv.reader(
                         file, delimiter=delimiter, quotechar=quotechar,
